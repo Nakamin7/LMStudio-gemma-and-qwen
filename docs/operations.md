@@ -1,24 +1,15 @@
-# Operations & troubleshooting
+# Operations and Troubleshooting
 
-## Start/stop
+- Start Gradio UI using `start_ui.bat` and the scheduler worker using `start_worker.bat`.
+- Stop each process with `Ctrl+C`. Avoid running multiple scheduler workers.
+- **Switch active provider:** Use **Model Connection**, fetch available model IDs for cloud APIs, and **save** the selection. The next chat or scheduled task reads it.
+- **Switch local LM Studio models:** stop the worker and active inference; perform local unload/load from the UI; restart the worker.
+- **Changing API keys:** edit `.env` and restart both UI and worker processes.
+- **Model not found / unsupported tools:** confirm that the model supports Chat Completions with function calling.
+- **Cloud API 401 / 403 / 429:** check API key, project/billing entitlement, and usage limits.
+- **LM Studio memory error:** unload other models, reduce context length or GPU offload; do not bypass memory safeguards.
+- **Missing `lms`:** use LM Studio GUI or the native local REST API switch UI.
+- **Scheduled costs:** when a cloud provider is selected, scheduled tasks can automatically incur API usage charges. Pause tasks when not needed.
+- **Document search:** SQLite FTS5 is lexical matching; Japanese without spaces may give weak results.
 
-- `start_ui.bat`: Gradio interface at `http://127.0.0.1:7860`.
-- `start_worker.bat`: APScheduler task worker.
-- Stop each process with Ctrl+C. Keep the worker running for scheduled tasks.
-- Avoid running multiple workers concurrently.
-
-## Model loading errors
-
-If LM Studio reports insufficient resources, unload other models, reduce context length, reduce GPU offload, and close GPU-heavy applications. Do not bypass model-loading safety guardrails as a first resort.
-
-## Missing `lms` command
-
-Use LM Studio's GUI or the provided REST API script once the server is running. The CLI must be installed/available in PATH to use `lms` commands.
-
-## Tool calling fails
-
-Some GGUF models or templates do not support OpenAI-compatible tool calls reliably. Verify with a simple calculator prompt, and check the model card.
-
-## Document search
-
-SQLite FTS5 uses lexical matching; Japanese without spaces may return weak results. Vector embeddings are not included.
+See [Cloud Provider Guide](cloud-providers.md).

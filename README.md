@@ -1,149 +1,115 @@
 <div align="center">
 
-# LM Studio Agent
+# LM Studio Agent — Local + Cloud
 
-**Local-first AI workspace for Windows**
+**Windows AI agent with LM Studio, OpenAI API, and Google Gemini API**
 
-Chat with a local model · Search your documents · Run scheduled tasks
-
-`LM Studio` · `Python` · `Gradio` · `SQLite FTS5` · `APScheduler`
+`Python` · `Gradio` · `SQLite FTS5` · `APScheduler`
 
 </div>
 
 > [!IMPORTANT]
-> **Experimental project.** This repository contains source code, not GGUF weights. The two named model variants are *candidate models*, not verified compatibility claims. Test tool calling and memory use on your own machine. Do not expose the local UI or API to untrusted networks.
+> Experimental project. **X/Twitter monitoring is not included.** Local model weights, API keys, personal files, SQLite databases, and logs are not distributed. This app binds the UI to localhost and is not designed for untrusted users or public deployment.
 
 ## Features
 
 | Feature | Status |
 | --- | --- |
-| LM Studio OpenAI-compatible inference | Implemented |
-| Local chat and restricted tool calling | Implemented; model-dependent |
-| TXT / MD / CSV document indexing | Implemented (SQLite FTS5 lexical search, **not vector RAG**) |
-| Scheduled tasks and local execution history | Implemented (separate worker process) |
-| Gemma / Qwen switching | Manual via LM Studio or `switch_model.ps1` |
-| Browser automation / arbitrary shell execution | **Not included** |
-| Remote access / multi-user authentication | **Not included** |
+| LM Studio local models (Gemma / Qwen GGUF) | Supported through OpenAI-compatible local API |
+| OpenAI GPT models | Supported with `OPENAI_API_KEY` |
+| Google Gemini models | Supported using the Gemini OpenAI-compatible API |
+| Select provider and model from Web UI | Persistent SQLite preference shared with scheduled worker |
+| LM Studio load / unload through Web UI | Preserved; stop the worker first |
+| Chat and restricted tool calls | Supported on models implementing Chat Completions tools |
+| Local TXT / MD / CSV search | SQLite FTS5 keyword search (not vector RAG) |
+| Scheduled tasks and run history | Separate `worker.py` process |
+| Browser automation, unrestricted shell commands | Not included |
 
-## Interface
+## Windows quick start
 
-The Gradio dashboard uses a dark, minimal workspace style with Chat, Knowledge Base, Automations, Run History and Model Connection tabs. **No screenshot is bundled until a real, redacted capture is available.**
-
-## Quick start (Windows / PowerShell)
-
-1. Install [Python 3.11](https://www.python.org/downloads/) and [LM Studio](https://lmstudio.ai/).
-2. Clone and install:
+1. Install Python 3.11 and (for local inference) LM Studio.
+2. In PowerShell, run:
 
 ```powershell
-git clone https://github.com/YOUR_USERNAME/LMStudio-gemma-and-quen.git
+git clone https://github.com/Nakamin7/LMStudio-gemma-and-quen.git
 cd LMStudio-gemma-and-quen
 py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-3. In LM Studio, download and load **one** compatible model and start its local server on port `1234`. Because memory estimates can exceed 16 GB, try context length `2048` and adjust GPU offload cautiously. Do **not** disable memory guardrails to force a load.
-4. Check the available model IDs:
-
-```powershell
-(Invoke-RestMethod http://127.0.0.1:1234/v1/models).data | Select-Object id
-```
-
-5. With one model loaded, leave `LM_STUDIO_MODEL=` blank in `.env` for automatic selection; otherwise specify the exact API model ID. Start **both** processes in separate terminals:
+3. **Local inference:** Start LM Studio and enable its local server at `http://127.0.0.1:1234`. Download and load one supported model.
+4. **OpenAI:** Add `OPENAI_API_KEY` to `.env`, using an API key from the OpenAI Platform (not your ChatGPT password).
+5. **Gemini:** Add `GEMINI_API_KEY` to `.env`, using a Gemini API key from Google AI Studio.
+6. Start the UI and worker in **separate** terminals:
 
 ```powershell
 .\start_ui.bat
-# In another terminal:
+# Open another terminal in the same folder:
 .\start_worker.bat
 ```
 
-6. Open **http://127.0.0.1:7860**. Use *Model Connection* to check the loaded model.
+7. Open `http://127.0.0.1:7860` → **Model Connection**. Select a provider, retrieve models, choose a compatible chat model, acknowledge cloud-data transfer and potential charges (for cloud providers), and click **Save Inference Target** (the UI may display this action in Japanese).
 
-## Switching models
+Provider and model selection is stored in `provider_selection.sqlite3`, which is shared between the UI and worker. Model IDs for locally loaded LM Studio instances are stored separately in `model_selection.sqlite3`. **Changing a dropdown alone does not activate a model; press the save button.** Each new chat request or scheduled run reads the selected provider. No automatic cloud fallback is performed.
 
-Candidate names (exact published model keys and licensing must be verified with their respective publishers):
+## Switching models using the Web UI
 
-- Gemma 4 26B A4B QAT
-- Qwen3.8 27B Heretic Ara 16GB VRAM XS MTP GGUF IQ4_XS
+### Switch inference providers (LM Studio / OpenAI / Gemini)
 
-**Stop the UI and worker before switching.** You can use LM Studio's UI, or:
+1. Open **Model Connection**.
+2. Select **LM Studio (local)**, **OpenAI API**, or **Google Gemini API**.
+3. For online providers, click **Fetch Model List**, choose a supported model ID, and check the consent box.
+4. Click **Save Inference Target**, then verify **Current Inference Target**.
+5. Test the selection in **AI Chat**. The next scheduled task also uses the newly selected provider.
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\switch_model.ps1
-```
+> **Privacy and costs:** When using an online provider, chat messages, recent history, system instructions, and tool outputs (including retrieved local document excerpts, if the model requests them) can be sent to that provider. Cloud API billing and rate limits apply separately from any ChatGPT subscription. Disable scheduled tasks before cloud switching if you want to avoid unattended billing.
 
-Select the downloaded model by number, confirm, and restart the UI and worker. The script requests context length `2048`, but does not force GPU offload; the server's loading defaults apply. For GPU-offload tuning use LM Studio's load controls or its CLI. Check actual API IDs after loading. Switching while a task runs can fail the task.
+### Switch locally loaded LM Studio models
 
-## Architecture
+1. Stop `start_worker.bat` and wait for active chat inference to finish.
+2. In **Model Connection**, scroll to the LM Studio local model controls.
+3. Refresh the downloaded model list, select the desired GGUF model, and choose the context length (start with `2048`; keep GPU KV cache off if VRAM is limited).
+4. Check the confirmation box and click the local model switch button.
+5. Save **LM Studio (local)** as the active provider and restart the worker.
+
+See [Model Switching Guide](docs/model-switching.md) and [Cloud Provider Guide](docs/cloud-providers.md).
+
+## Design
 
 ```text
-Gradio UI (app.py) ──────┐
-                         ├── SQLite (tasks, runs, FTS5)
-APScheduler (worker.py) ─┤
-                         └── Agent (restricted tools) ── LM Studio localhost API ── GGUF
+                         ┌─────────────────┐
+Gradio UI ───────────────>│                 │
+                         │ Provider router │──── Local ── LM Studio / GGUF
+APScheduler worker ──────>│   + SQLite      │──── OpenAI ─ OpenAI API
+                         │                 │──── Gemini ─ Gemini API
+                         └─────────────────┘
+                                │
+                         Allowlisted tools
+                         (calculator / FTS5 / local text)
 ```
 
-See [Architecture](docs/architecture.md), [Installation](docs/installation.md), [Configuration](docs/configuration.md), [Operations](docs/operations.md), and [Security](SECURITY.md).
+[Architecture](docs/architecture.md) · [Installation](docs/installation.md) · [Configuration](docs/configuration.md) · [Operations](docs/operations.md) · [Security](SECURITY.md)
 
-## Security
+## Security and limitations
 
-`.env`, databases, user documents, logs, workspaces and model weights are ignored by Git. **`.gitignore` does not erase previously committed secrets.** Review `git ls-files`, staged changes, and commit history before publishing. API and UI are intended for `127.0.0.1` only. Uploaded documents and tool outputs are untrusted; the agent cannot run arbitrary shell commands or send data to external services with its built-in tools.
-
-## Limitations
-
-- Model-specific tool calling and VRAM usage have **not** been validated on every candidate GGUF.
-- Japanese tokenization in SQLite FTS5 is limited; this is keyword search, not semantic retrieval.
-- Background tasks require the worker process to remain running; PC sleep/shutdown pauses execution. No catch-up guarantee after downtime.
-- Do not run multiple worker instances against the same DB.
-- Scheduled tasks are autonomous only within registered prompts and allowlisted tools.
+- **Never commit `.env` or API keys.** `.gitignore` does not remove secrets already in Git history.
+- ChatGPT website subscriptions and OpenAI API access are **separate products**. This integrates **OpenAI API**, not automated ChatGPT website access.
+- API models can have different tool-calling capabilities; model listing does not guarantee Chat Completions or tool compatibility.
+- Switching to cloud inference affects **future scheduled executions**, which can incur charges.
+- The local UI has no multi-user authentication. Keep it bound to `127.0.0.1`.
+- Automatic tasks only run while the worker and PC are running.
+- Generated results may be inaccurate and tool calls must remain allowlisted.
 
 ## Tests
 
 ```powershell
-python -m pip install pytest
-python -m pytest -q
+.\.venv\Scripts\python.exe -m pip install pytest
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-CI runs offline syntax and unit tests; it does **not** run LM Studio inference.
+These tests mock model APIs and do not perform live billing or GPU inference.
 
 ## License
 
-MIT for this project's source code. **Model weights and third-party packages retain their own licenses.** Verify model redistribution and usage terms with their publishers.
-
-## Dashboard appearance / troubleshooting
-
-The dashboard uses scoped CSS in `ui/custom.css` and a responsive three-column HTML grid in `app.py`.
-The status cards describe components, **not** live connection health; use **Model Connection → Check Connection** for actual status.
-If text appears dark on dark backgrounds or cards stack on desktop, update both files, restart `start_ui.bat`, and hard-refresh the browser (`Ctrl+F5`).
-On a narrow window (under 720px), the cards intentionally stack.
-
-## Switch Models Using the Web UI
-
-LM Studio Agent allows you to switch between locally downloaded LLMs, such as Gemma and Qwen, directly from the Gradio web interface.
-
-### Quick Steps
-
-1. Start LM Studio and enable its local API server.
-2. Stop the background worker (`worker.py`) and ensure that no inference requests are running.
-3. Launch the application using `start_ui.bat`.
-4. Open `http://127.0.0.1:7860` in your browser.
-5. Navigate to the **Model Connection** tab.
-6. Click **Refresh Model List** to retrieve the available models.
-7. Select the desired model from the dropdown menu.
-8. Set the context length. **2048** is recommended as an initial value for systems with limited VRAM.
-9. Configure GPU KV cache offloading according to your available memory.
-10. Check the confirmation box to acknowledge that the worker has stopped and no inference is running.
-11. Click **Switch to Selected Model**.
-12. Verify that the selected model has loaded successfully.
-13. Restart `start_worker.bat` to resume scheduled tasks.
-
-### Important Notes
-
-- The models must already be downloaded in LM Studio.
-- Only one large LLM should be loaded at a time on systems with limited VRAM.
-- Switching models may temporarily interrupt inference.
-- Model loading may fail if insufficient RAM or VRAM is available.
-- If multiple models are detected, distinguish downloaded models from actively loaded model instances.
-
-For detailed instructions and troubleshooting, see [Model Switching Guide](docs/model-switching.md).
+MIT license for this project's source code; model weights and third-party libraries have their own licenses.

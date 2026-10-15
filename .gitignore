@@ -36,3 +36,6 @@ Thumbs.db
 
 # Model selection state
 model_selection.sqlite3*
+
+# Selected provider and cloud model IDs (never publish local preferences)
+provider_selection.sqlite3*

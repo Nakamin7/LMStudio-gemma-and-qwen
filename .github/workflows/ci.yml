@@ -13,8 +13,10 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install test dependencies
-        run: python -m pip install pytest python-dotenv
+        run: python -m pip install -r requirements.txt pytest
       - name: Check syntax
         run: python -m compileall -q app.py worker.py config.py src ui tests
+      - name: Verify UI imports without running a local model
+        run: python -c 'import app; print(type(app.demo).__name__)'
       - name: Run offline tests
         run: python -m pytest -q tests

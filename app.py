@@ -5,7 +5,9 @@ from config import DOCUMENTS
 from src.database import init_db, add_task, tasks, set_enabled, runs
 from src.rag import ingest_file, index_documents
 from src.agent import ask
-from src.lmstudio import list_models, selected_model, local_models, switch_model
+from src.lmstudio import selected_model, local_models, switch_model
+from src.providers import (current_selection, list_provider_models, set_provider,
+                           selection_status)
 from ui.theme import get_theme
 
 init_db()
@@ -85,25 +87,53 @@ def apply_model_switch(model_key, context_length, kv_cache_on_gpu, confirmed):
     except Exception as exc:
         return f"切り替え失敗: {type(exc).__name__}: {exc}", model_status()
 
-with gr.Blocks(title='LM Studio Agent', theme=get_theme(), css=CSS) as demo:
+
+def provider_models(provider):
+    if provider == 'local':
+        return gr.update(choices=[], value=None), 'LM Studioのモデルは下の「モデル一覧を更新」から読み込み・切り替えしてください。'
+    try:
+        items = list_provider_models(provider)
+        if not items:
+            return gr.update(choices=[], value=None), "利用可能なチャットモデルが見つかりません。API権限またはモデル設定を確認してください。"
+        previous_provider, previous_model = current_selection()
+        preferred = previous_model if previous_provider == provider and previous_model in items else items[0]
+        return gr.update(choices=items, value=preferred), f"{provider}: {len(items)} 件のモデルIDを取得しました。モデルによってはChat Completionsに非対応です。"
+    except Exception as exc:
+        return gr.update(choices=[], value=None), f"一覧取得エラー: {type(exc).__name__}: {exc}"
+
+
+def provider_changed(provider):
+    # Changing a dropdown never changes what the worker uses. Explicit save is required.
+    return gr.update(choices=[], value=None), f"{provider} を選択中です。「モデル一覧を取得」を押してください。"
+
+
+def apply_provider(provider, model, cloud_confirmed):
+    try:
+        result = set_provider(provider, model or "", cloud_confirmed=cloud_confirmed)
+        return result, selection_status()
+    except Exception as exc:
+        return f"設定エラー: {type(exc).__name__}: {exc}", selection_status()
+
+
+with gr.Blocks(title='LM Studio Agent') as demo:
     # Single HTML dashboard: stable three-column layout and explicit text contrast.
     gr.HTML("""
     <div class="agent-dashboard">
       <header class="agent-hero">
-        <p class="agent-eyebrow">LOCAL-FIRST AI WORKSPACE</p>
+        <p class="agent-eyebrow">LOCAL + CLOUD AI WORKSPACE</p>
         <h1>LM Studio Agent</h1>
-        <p class="agent-description">Private inference · Restricted tools · Scheduled workflows</p>
+        <p class="agent-description">Select local or cloud inference · Restricted tools · Scheduled workflows</p>
       </header>
       <section class="agent-grid" aria-label="Workspace overview">
         <article class="agent-card">
           <p class="agent-card-label">INFERENCE</p>
-          <p class="agent-card-value">LM Studio</p>
-          <p class="agent-card-detail">Local API · 127.0.0.1</p>
+          <p class="agent-card-value">3 providers</p>
+          <p class="agent-card-detail">LM Studio · OpenAI · Gemini</p>
         </article>
         <article class="agent-card">
           <p class="agent-card-label">MODEL</p>
-          <p class="agent-card-value">Gemma / Qwen</p>
-          <p class="agent-card-detail">One model at a time · check status below</p>
+          <p class="agent-card-value">Local + Cloud</p>
+          <p class="agent-card-detail">Explicit selection · no fallback</p>
         </article>
         <article class="agent-card">
           <p class="agent-card-label">STORAGE</p>
@@ -139,7 +169,37 @@ with gr.Blocks(title='LM Studio Agent', theme=get_theme(), css=CSS) as demo:
             history_box = gr.Textbox(label='直近の実行結果', lines=16)
             gr.Button('Refresh History').click(fn=format_runs, outputs=history_box)
         with gr.Tab('Model Connection'):
-            gr.Markdown('### ローカルLLMモデル切り替え\nLM Studioでダウンロード済みのLLMのみ表示します。切り替え前に **worker.pyを停止** し、進行中のチャットがないことを確認してください。ロード時は現在のLLMをアンロードします。')
+            gr.Markdown('### 推論プロバイダーとモデルの選択\n**LM Studio / OpenAI API / Gemini API** に切り替えられます。設定はチャットとワーカーで共有されます。**オンラインを選ぶと質問・履歴・ツール結果が外部APIへ送信され、API利用料金が発生する場合があります。**')
+            saved_provider, saved_model = current_selection()
+            provider_pick = gr.Dropdown(
+                label='推論プロバイダー',
+                choices=[('LM Studio (local)', 'local'), ('OpenAI API (GPT)', 'openai'), ('Google Gemini API', 'gemini')],
+                value=saved_provider,
+                interactive=True,
+            )
+            online_model = gr.Dropdown(
+                label='オンラインモデルID（候補から選択、または手入力）',
+                choices=[saved_model] if saved_provider != 'local' and saved_model else [],
+                value=saved_model if saved_provider != 'local' and saved_model else None,
+                interactive=True,
+                allow_custom_value=True,
+            )
+            provider_hint = gr.Textbox(label='モデル一覧の取得結果', value='「モデル一覧を取得」で接続と利用可能モデルを確認できます。', lines=2)
+            provider_pick.change(fn=provider_changed, inputs=provider_pick, outputs=[online_model, provider_hint])
+            gr.Button('モデル一覧を取得（オンラインの場合はAPIへの接続が必要）').click(
+                fn=provider_models, inputs=provider_pick, outputs=[online_model, provider_hint],
+            )
+            online_confirm = gr.Checkbox(label='オンラインAPIへのデータ送信と従量課金の可能性を理解しました（オンライン選択時のみ必須）', value=False)
+            provider_result = gr.Textbox(label='保存結果', lines=2)
+            active_provider_box = gr.Textbox(label='現在の推論先（チャット・ワーカー共通）', value=selection_status(), lines=4)
+            gr.Button('この推論先を保存', variant='primary').click(
+                fn=apply_provider,
+                inputs=[provider_pick, online_model, online_confirm],
+                outputs=[provider_result, active_provider_box],
+                concurrency_limit=1,
+            )
+            gr.Button('現在の推論先を再確認').click(fn=selection_status, outputs=active_provider_box)
+            gr.Markdown('---\n### LM Studio ローカルモデルの読み込み・切り替え\n**ローカルモデルのロード/アンロード専用**です。切り替え前にworker.pyを停止し、進行中のチャットがないことを確認してください。オンラインAPI利用時にはこの操作は必要ありません。')
             model_box = gr.Textbox(label='LM Studio接続状態', lines=4, value='「モデル一覧を更新」を押してください。')
             model_dropdown = gr.Dropdown(label='切り替え先モデル', choices=[], interactive=True)
             gr.Button('モデル一覧を更新').click(fn=model_choices, outputs=[model_dropdown, model_box])
@@ -153,4 +213,4 @@ with gr.Blocks(title='LM Studio Agent', theme=get_theme(), css=CSS) as demo:
 
 if __name__ == '__main__':
     index_documents()
-    demo.launch(server_name='127.0.0.1', server_port=7860, share=False)
+    demo.launch(server_name='127.0.0.1', server_port=7860, share=False, theme=get_theme(), css=CSS)
