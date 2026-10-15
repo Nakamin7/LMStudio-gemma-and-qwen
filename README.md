@@ -118,6 +118,32 @@ The status cards describe components, **not** live connection health; use **Mode
 If text appears dark on dark backgrounds or cards stack on desktop, update both files, restart `start_ui.bat`, and hard-refresh the browser (`Ctrl+F5`).
 On a narrow window (under 720px), the cards intentionally stack.
 
-## UIからモデルを切り替える / Switch models
+## Switch Models Using the Web UI
 
-`Model Connection` タブで「モデル一覧を更新」→モデル選択→確認チェック→切り替えを実行できます。切り替え中はワーカーを停止してください。詳細は [モデル切り替え手順](docs/model-switching.md) を参照してください。
+LM Studio Agent allows you to switch between locally downloaded LLMs, such as Gemma and Qwen, directly from the Gradio web interface.
+
+### Quick Steps
+
+1. Start LM Studio and enable its local API server.
+2. Stop the background worker (`worker.py`) and ensure that no inference requests are running.
+3. Launch the application using `start_ui.bat`.
+4. Open `http://127.0.0.1:7860` in your browser.
+5. Navigate to the **Model Connection** tab.
+6. Click **Refresh Model List** to retrieve the available models.
+7. Select the desired model from the dropdown menu.
+8. Set the context length. **2048** is recommended as an initial value for systems with limited VRAM.
+9. Configure GPU KV cache offloading according to your available memory.
+10. Check the confirmation box to acknowledge that the worker has stopped and no inference is running.
+11. Click **Switch to Selected Model**.
+12. Verify that the selected model has loaded successfully.
+13. Restart `start_worker.bat` to resume scheduled tasks.
+
+### Important Notes
+
+- The models must already be downloaded in LM Studio.
+- Only one large LLM should be loaded at a time on systems with limited VRAM.
+- Switching models may temporarily interrupt inference.
+- Model loading may fail if insufficient RAM or VRAM is available.
+- If multiple models are detected, distinguish downloaded models from actively loaded model instances.
+
+For detailed instructions and troubleshooting, see [Model Switching Guide](docs/model-switching.md).
