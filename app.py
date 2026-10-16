@@ -7,7 +7,7 @@ from src.rag import ingest_file, index_documents
 from src.agent import ask
 from src.lmstudio import selected_model, local_models, switch_model
 from src.providers import (current_selection, list_provider_models, set_provider,
-                           selection_status)
+                           selection_status, jev_preferences, set_jev_preferences)
 from ui.theme import get_theme
 
 init_db()
@@ -107,6 +107,17 @@ def provider_changed(provider):
     return gr.update(choices=[], value=None), f"{provider} を選択中です。「モデル一覧を取得」を押してください。"
 
 
+def save_jev_settings(enabled, consented):
+    try:
+        message = set_jev_preferences(enabled, consented)
+        if enabled and not __import__("os").getenv("TYPESAFE_API_KEY", "").strip():
+            return message + "。ただし TYPESAFE_API_KEY が未設定のため、判定時にローカル検索へフォールバックします。", jev_preferences()[0], jev_preferences()[1]
+        return message, jev_preferences()[0], jev_preferences()[1]
+    except Exception as exc:
+        current_enabled, current_consent = jev_preferences()
+        return f"設定エラー: {type(exc).__name__}: {exc}", current_enabled, current_consent
+
+
 def apply_provider(provider, model, cloud_confirmed):
     try:
         result = set_provider(provider, model or "", cloud_confirmed=cloud_confirmed)
@@ -199,6 +210,19 @@ with gr.Blocks(title='LM Studio Agent') as demo:
                 concurrency_limit=1,
             )
             gr.Button('現在の推論先を再確認').click(fn=selection_status, outputs=active_provider_box)
+            gr.Markdown('''---
+### Jevによるナレッジ検索の関連度判定（任意・初期状態は無効）
+Jevは検索候補の関連度を判定するためだけに利用します。Jevへ送信されるのは、ナレッジ検索の質問（最大2,000文字）、候補文書名（最大160文字）、候補本文の抜粋（最大1,200文字、最大4件）です。Jevにはファイル操作ツール、ローカルファイルシステム、他のAPIキーを渡しません。
+
+Jevは外部サービスです。入力がTypeSafe AIのAPIへ送信され、料金・利用制限・データ取扱いが適用されます。機密情報や個人情報を含む文書は、送信の適法性と必要性を確認してから利用してください。Jevの判定が失敗した場合はローカル検索結果にフォールバックします。Jevの判定はファイル削除、読み取り、設定変更などの権限を付与しません。
+
+利用前に [TypeSafe AI](https://typesafe.ai/) と [Jev開発ドキュメント](https://docs.typesafe.ai/) の最新の利用規約、プライバシー説明、料金、制限を確認してください。JevのAPIキーは `.env` の `TYPESAFE_API_KEY` に設定します。
+''')
+            jev_enabled_saved, jev_consent_saved = jev_preferences()
+            jev_enabled = gr.Checkbox(label='Jevの関連度判定を有効にする', value=jev_enabled_saved)
+            jev_consent = gr.Checkbox(label='質問と検索候補の抜粋がJev（TypeSafe AI）の外部APIへ送信されること、利用条件・料金を確認しました', value=jev_consent_saved)
+            jev_status = gr.Textbox(label='Jev設定結果', lines=2, value='Jevは初期状態では無効です。')
+            gr.Button('Jev設定を保存').click(fn=save_jev_settings, inputs=[jev_enabled, jev_consent], outputs=[jev_status, jev_enabled, jev_consent], concurrency_limit=1)
             gr.Markdown('---\n### LM Studio ローカルモデルの読み込み・切り替え\n**ローカルモデルのロード/アンロード専用**です。切り替え前にworker.pyを停止し、進行中のチャットがないことを確認してください。オンラインAPI利用時にはこの操作は必要ありません。')
             model_box = gr.Textbox(label='LM Studio接続状態', lines=4, value='「モデル一覧を更新」を押してください。')
             model_dropdown = gr.Dropdown(label='切り替え先モデル', choices=[], interactive=True)

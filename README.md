@@ -113,3 +113,7 @@ These tests mock model APIs and do not perform live billing or GPU inference.
 ## License
 
 MIT license for this project's source code; model weights and third-party libraries have their own licenses.
+
+## Optional Jev relevance filtering
+
+Jev integration is opt-in and disabled by default. See [`docs/jev-integration.md`](docs/jev-integration.md) for the external-data disclosure, consent steps, permission boundary, and setup. Set `TYPESAFE_API_KEY` in your local `.env`, then explicitly enable Jev and accept the Jev-specific disclosure in **Model Connection**. This sends the search query and bounded excerpts of retrieved passages to TypeSafe AI. Do not enable it for sensitive documents unless external processing is approved. Jev does not receive or execute app tools, and its output cannot authorize file/configuration changes. The feature falls back to local search if the Jev API fails.

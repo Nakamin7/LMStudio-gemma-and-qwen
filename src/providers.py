@@ -237,3 +237,31 @@ def selection_status():
         return f"現在の推論先: LM Studio (local)\n選択済みインスタンス: {model or '未選択（ロード済みモデルを自動検出）'}"
     state = "設定済み" if configured(provider) else "未設定"
     return f"現在の推論先: {provider}\nモデルID: {model or '未選択'}\nAPIキー: {state}"
+
+
+# Jev settings are stored separately from cloud inference provider selection.
+def jev_preferences():
+    """Return (enabled, consented); Jev is opt-in and defaults off."""
+    enabled = _read_setting("jev_enabled", "0") == "1"
+    consented = _read_setting("jev_consent", "0") == "1"
+    # Defense in depth: an enabled flag without stored consent is never honored.
+    return enabled and consented, consented
+
+def set_jev_preferences(enabled, consented):
+    """Persist explicit Jev opt-in independently of OpenAI/Gemini consent."""
+    enabled = bool(enabled)
+    consented = bool(consented)
+    if enabled and not consented:
+        raise ValueError("Jevを有効にするには、Jevへのデータ送信について同意が必要です")
+    with _connect() as db:
+        db.execute(
+            "INSERT INTO settings(name,value) VALUES('jev_enabled',?) "
+            "ON CONFLICT(name) DO UPDATE SET value=excluded.value",
+            ("1" if enabled else "0",),
+        )
+        db.execute(
+            "INSERT INTO settings(name,value) VALUES('jev_consent',?) "
+            "ON CONFLICT(name) DO UPDATE SET value=excluded.value",
+            ("1" if consented else "0",),
+        )
+    return "Jevの関連度判定を有効にしました" if enabled else "Jevの関連度判定を無効にしました"

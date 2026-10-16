@@ -2,6 +2,7 @@ import ast
 import operator
 from config import WORKSPACE
 from src.rag import search_documents
+from src.providers import jev_preferences
 
 OPS={ast.Add:operator.add,ast.Sub:operator.sub,ast.Mult:operator.mul,ast.Div:operator.truediv,
      ast.FloorDiv:operator.floordiv,ast.Mod:operator.mod,ast.Pow:operator.pow,
@@ -36,7 +37,35 @@ def read_workspace_file(filename):
     return path.read_text(encoding='utf-8-sig')[:20000]
 
 def search_knowledge_base(query):
-    results=search_documents(query)
+    results = search_documents(query)
+    if not results:
+        return '一致する文書なし'
+
+    # Jev receives only the user's query and short retrieved passages, and only after
+    # explicit, independently persisted Jev consent. It receives no tools or credentials.
+    enabled, consented = jev_preferences()
+    if enabled and consented:
+        try:
+            from src.jev import relevance_probability
+            import os
+            threshold = float(os.getenv("JEV_RELEVANCE_THRESHOLD", "0.80"))
+            threshold = max(0.0, min(1.0, threshold))
+            judged = []
+            for item in results[:4]:
+                probability = relevance_probability(query, item.get('source', ''), item.get('content', ''))
+                if probability >= threshold:
+                    judged.append(item)
+            # If all candidates are rejected, do not silently claim that no evidence exists;
+            # preserve local search results and label the fallback.
+            if judged:
+                results = judged
+            else:
+                return ('Jevがしきい値以上の関連文書を選べなかったため、ローカル検索結果を表示します。\n\n'
+                        + '\n\n'.join(f"出典: {x['source']}\n{x['content']}" for x in results))
+        except Exception as exc:
+            # Availability failure must not block the existing local knowledge search.
+            return (f'Jev判定を利用できなかったため、ローカル検索結果を表示します（{type(exc).__name__}）。\n\n'
+                    + '\n\n'.join(f"出典: {x['source']}\n{x['content']}" for x in results))
     return '\n\n'.join(f"出典: {x['source']}\n{x['content']}" for x in results) or '一致する文書なし'
 
 FUNCTIONS={

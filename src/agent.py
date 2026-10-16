@@ -25,44 +25,11 @@ def ask(question, history=None):
         if msg.content is not None:
             assistant_msg["content"] = msg.content
         if msg.tool_calls:
-            assistant_msg["tool_calls"] = []
-            for call in msg.tool_calls:
-                # Gemini OpenAI-compatibility may attach the required
-                # extra_content.google.thought_signature to a tool call.
-                # Preserve SDK fields instead of rebuilding only id/type/function.
-                call_data = None
-                dump = getattr(call, "model_dump", None)
-                if callable(dump):
-                    try:
-                        call_data = dump(exclude_none=True)
-                    except TypeError:
-                        call_data = dump()
-                if not isinstance(call_data, dict):
-                    call_data = {
-                        "id": call.id,
-                        "type": "function",
-                        "function": {
-                            "name": call.function.name,
-                            "arguments": call.function.arguments or "{}",
-                        },
-                    }
-                    extra_content = getattr(call, "extra_content", None)
-                    if extra_content is None:
-                        model_extra = getattr(call, "model_extra", None)
-                        if isinstance(model_extra, dict):
-                            extra_content = model_extra.get("extra_content")
-                    if extra_content is not None:
-                        call_data["extra_content"] = extra_content
-                # Normalize the required OpenAI tool-call fields while keeping
-                # provider-specific fields such as Gemini thought signatures.
-                call_data.setdefault("id", call.id)
-                call_data.setdefault("type", "function")
-                if "function" not in call_data:
-                    call_data["function"] = {
-                        "name": call.function.name,
-                        "arguments": call.function.arguments or "{}",
-                    }
-                assistant_msg["tool_calls"].append(call_data)
+            assistant_msg["tool_calls"] = [
+                {"id": call.id, "type": "function", "function": {
+                    "name": call.function.name, "arguments": call.function.arguments or "{}"
+                }} for call in msg.tool_calls
+            ]
         messages.append(assistant_msg)
         if not msg.tool_calls:
             return msg.content or 'モデルから空の応答が返りました'
