@@ -1,0 +1,38 @@
+# Keep Gitleaks' built-in provider rules and add explicit checks for common API-key
+# environment variable names used by this project and related integrations.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "project-api-key-assignment"
+description = "API key assigned to a project/provider secret variable"
+regex = '''(?i)(?:OPENAI_API_KEY|GEMINI_API_KEY|TYPESAFE_API_KEY|ANTHROPIC_API_KEY|OPENROUTER_API_KEY|DISCORD_BOT_TOKEN|GITHUB_TOKEN|API_KEY)\s*[:=]\s*["']?([A-Za-z0-9_./+=-]{20,})'''
+secretGroup = 1
+keywords = [
+  "OPENAI_API_KEY",
+  "GEMINI_API_KEY",
+  "TYPESAFE_API_KEY",
+  "ANTHROPIC_API_KEY",
+  "OPENROUTER_API_KEY",
+  "DISCORD_BOT_TOKEN",
+  "GITHUB_TOKEN",
+  "API_KEY",
+]
+
+[[rules]]
+id = "google-ai-studio-key"
+description = "Google AI Studio / Gemini API key"
+regex = '''\bAIza[0-9A-Za-z_-]{30,}\b'''
+keywords = ["AIza"]
+
+[[rules]]
+id = "openai-secret-key"
+description = "OpenAI API secret key"
+regex = '''\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b'''
+keywords = ["sk-"]
+
+[[rules]]
+id = "anthropic-secret-key"
+description = "Anthropic API secret key"
+regex = '''\bsk-ant-[A-Za-z0-9_-]{20,}\b'''
+keywords = ["sk-ant-"]

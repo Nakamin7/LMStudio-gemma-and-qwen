@@ -1,0 +1,17 @@
+# Install once per clone: python -m pip install pre-commit && pre-commit install
+# The gitleaks hook scans staged changes and blocks a commit when secrets are found.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.3
+    hooks:
+      - id: gitleaks
+        name: gitleaks - block secrets in staged changes
+        args: [--redact, --verbose]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        name: mypy - static type checking
+        args: [--config-file=mypy.ini]
+        additional_dependencies: [types-requests]
