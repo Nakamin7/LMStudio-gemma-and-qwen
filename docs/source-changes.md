@@ -49,6 +49,7 @@ Cloud calls can send prompt/history/tool output to the provider and incur charge
 Copy the **changed or added files** from the update-only ZIP into your existing project root. **Do not delete or overwrite** your existing local `.env`, `agent.sqlite3`, `model_selection.sqlite3`, `data/documents/`, or workspace files. `provider_selection.sqlite3` is created automatically.
 
 If you have modified source files, review and merge differences before overwriting them. Back up the project directory first.
+<<<<<<< HEAD
 
 
 ## GraphRAG enhancement
@@ -59,3 +60,5 @@ If you have modified source files, review and merge differences before overwriti
 - `search_knowledge_base` merges graph evidence with FTS5 candidates before optional Jev relevance filtering.
 - Added graph index status/rebuild controls to the Knowledge Base tab and offline tests.
 - This initial version is deliberately lightweight; it does not claim semantic relationship extraction, embeddings, or full Microsoft GraphRAG functionality.
+=======
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0

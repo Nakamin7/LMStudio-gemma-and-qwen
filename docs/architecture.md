@@ -5,7 +5,11 @@ The Gradio UI (`app.py`) and APScheduler worker (`worker.py`) share SQLite state
 ```text
 Gradio UI / worker.py
         │
+<<<<<<< HEAD
         ├── SQLite: tasks, run history, document FTS5 + graph_entities + graph_edges
+=======
+        ├── SQLite: tasks, run history, document FTS5
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
         └── src/agent.py
                │
                └── src/providers.py (SQLite provider preference)
@@ -26,8 +30,11 @@ Providers use the OpenAI Python client, since LM Studio and Gemini expose compat
 - Arbitrary shell commands, web-browser automation, X monitoring, and unrestricted filesystem access are not included.
 - SQLite stores task prompts and results, local document chunks, and selected model IDs.
 - Models, documents, and tool outputs are untrusted content; prompt injection risks still exist.
+<<<<<<< HEAD
 
 
 ## Graph-assisted retrieval
 
 Document ingestion builds a local graph index in SQLite. Candidate entities are extracted deterministically from identifiers, Latin tokens, and Japanese text spans; links are stored as `co_occurs_in` with the supporting chunk excerpt and source filename. `search_knowledge_base` merges FTS5 results with matching graph evidence before optional Jev relevance filtering. Indexing itself does not call a provider or transmit document content. This is a lightweight local graph-assisted retriever, not full Microsoft GraphRAG, semantic relation extraction, or vector search. Treat graph links as co-occurrence evidence only.
+=======
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0

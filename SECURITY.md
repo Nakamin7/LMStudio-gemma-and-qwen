@@ -19,9 +19,12 @@ Review `git status`, `git diff --cached`, `git ls-files`, and commit history to 
 ## Reports
 
 Do not send API keys, access tokens, local private documents, or logs containing secrets when reporting issues.
+<<<<<<< HEAD
 
 ## Git commit protection
 
 The repository provides `.pre-commit-config.yaml` and `.gitleaks.toml`. After cloning, install the hook with `py -m pip install pre-commit` and `pre-commit install`. Gitleaks checks staged changes and rejects detected secrets, including common API-key formats and assignments to provider-specific key variables. A GitHub Actions scan provides additional protection on pushes and pull requests.
 
 This is defense in depth, not a guarantee that every possible secret format will be detected. Never commit real credentials. If a key is exposed, revoke/rotate it immediately; deleting it in a later commit does not remove it from Git history.
+=======
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0

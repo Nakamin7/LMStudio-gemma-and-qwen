@@ -4,7 +4,11 @@
 
 **Windows AI agent with LM Studio, OpenAI API, and Google Gemini API**
 
+<<<<<<< HEAD
 `Python 3.11` · `Gradio` · `SQLite FTS5` · `GraphRAG` · `optional vector RAG` · `mypy` · `pre-commit/Gitleaks`
+=======
+`Python` · `Gradio` · `SQLite FTS5` · `APScheduler`
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 
 </div>
 
@@ -16,12 +20,21 @@
 | Feature | Status |
 | --- | --- |
 | LM Studio local models (Gemma / Qwen GGUF) | Supported through OpenAI-compatible local API |
+<<<<<<< HEAD
 | OpenAI GPT models | Supported with `OPENAI_API_KEY`; Responses API is used for tool orchestration |
 | Google Gemini models | Supported using the Gemini OpenAI-compatible API |
 | Select provider and model from Web UI | Persistent SQLite preference shared with scheduled worker |
 | LM Studio load / unload through Web UI | Preserved; stop the worker first |
 | Chat and restricted tool calls | OpenAI uses Responses API; Gemini and LM Studio retain Chat Completions tools |
 | Local TXT / MD / CSV search | SQLite FTS5, graph-assisted retrieval, optional vector retrieval |
+=======
+| OpenAI GPT models | Supported with `OPENAI_API_KEY` |
+| Google Gemini models | Supported using the Gemini OpenAI-compatible API |
+| Select provider and model from Web UI | Persistent SQLite preference shared with scheduled worker |
+| LM Studio load / unload through Web UI | Preserved; stop the worker first |
+| Chat and restricted tool calls | Supported on models implementing Chat Completions tools |
+| Local TXT / MD / CSV search | SQLite FTS5 keyword search (not vector RAG) |
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 | Scheduled tasks and run history | Separate `worker.py` process |
 | Browser automation, unrestricted shell commands | Not included |
 
@@ -41,9 +54,13 @@ Copy-Item .env.example .env
 3. **Local inference:** Start LM Studio and enable its local server at `http://127.0.0.1:1234`. Download and load one supported model.
 4. **OpenAI:** Add `OPENAI_API_KEY` to `.env`, using an API key from the OpenAI Platform (not your ChatGPT password).
 5. **Gemini:** Add `GEMINI_API_KEY` to `.env`, using a Gemini API key from Google AI Studio.
+<<<<<<< HEAD
 6. **OpenAI Responses API:** This project uses Responses API for OpenAI requests with tools. Ensure `openai>=1.66` is installed; Gemini and LM Studio continue using Chat Completions.
 
 7. Start the UI and worker in **separate** terminals:
+=======
+6. Start the UI and worker in **separate** terminals:
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 
 ```powershell
 .\start_ui.bat
@@ -51,7 +68,11 @@ Copy-Item .env.example .env
 .\start_worker.bat
 ```
 
+<<<<<<< HEAD
 8. Open `http://127.0.0.1:7860` → **Model Connection**. Select a provider, retrieve models, choose a compatible chat model, acknowledge cloud-data transfer and potential charges (for cloud providers), and click **Save Inference Target** (the UI may display this action in Japanese).
+=======
+7. Open `http://127.0.0.1:7860` → **Model Connection**. Select a provider, retrieve models, choose a compatible chat model, acknowledge cloud-data transfer and potential charges (for cloud providers), and click **Save Inference Target** (the UI may display this action in Japanese).
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 
 Provider and model selection is stored in `provider_selection.sqlite3`, which is shared between the UI and worker. Model IDs for locally loaded LM Studio instances are stored separately in `model_selection.sqlite3`. **Changing a dropdown alone does not activate a model; press the save button.** Each new chat request or scheduled run reads the selected provider. No automatic cloud fallback is performed.
 
@@ -75,7 +96,11 @@ Provider and model selection is stored in `provider_selection.sqlite3`, which is
 4. Check the confirmation box and click the local model switch button.
 5. Save **LM Studio (local)** as the active provider and restart the worker.
 
+<<<<<<< HEAD
 See [Model Switching Guide](docs/model-switching.md) and [Cloud Provider Guide](docs/cloud-providers.md). For the OpenAI Responses API tool-call loop and its migration impact, see [Responses API Migration](docs/responses-api-migration.md).
+=======
+See [Model Switching Guide](docs/model-switching.md) and [Cloud Provider Guide](docs/cloud-providers.md).
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 
 ## Design
 
@@ -103,6 +128,7 @@ APScheduler worker ──────>│   + SQLite      │──── OpenAI
 - Automatic tasks only run while the worker and PC are running.
 - Generated results may be inaccurate and tool calls must remain allowlisted.
 
+<<<<<<< HEAD
 ## Tests and static type checking
 
 Install development checks and run them from the project root:
@@ -116,6 +142,15 @@ Install development checks and run them from the project root:
 Production Python functions have parameter and return annotations. `mypy.ini` enables checking of untyped function bodies and rejects unannotated function signatures in the configured application paths. SDK/network/database boundaries may use `Any` where third-party response schemas are dynamic; prefer concrete types when extending those paths. The pre-commit hook and CI workflow run the type checker.
 
 
+=======
+## Tests
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install pytest
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 These tests mock model APIs and do not perform live billing or GPU inference.
 
 ## License
@@ -125,6 +160,7 @@ MIT license for this project's source code; model weights and third-party librar
 ## Optional Jev relevance filtering
 
 Jev integration is opt-in and disabled by default. See [`docs/jev-integration.md`](docs/jev-integration.md) for the external-data disclosure, consent steps, permission boundary, and setup. Set `TYPESAFE_API_KEY` in your local `.env`, then explicitly enable Jev and accept the Jev-specific disclosure in **Model Connection**. This sends the search query and bounded excerpts of retrieved passages to TypeSafe AI. Do not enable it for sensitive documents unless external processing is approved. Jev does not receive or execute app tools, and its output cannot authorize file/configuration changes. The feature falls back to local search if the Jev API fails.
+<<<<<<< HEAD
 
 
 ## GraphRAG quality improvements
@@ -153,3 +189,5 @@ The hook uses `.gitleaks.toml` and Gitleaks' built-in detectors. GitHub Actions 
 - Type-check configuration: [`mypy.ini`](mypy.ini).
 - All function definitions in `src/`, `app.py`, `config.py`, `worker.py`, and `evaluation/` have parameter and return annotations; dynamic third-party SDK responses use `Any` at the boundary.
 - Run `python -m mypy --config-file mypy.ini` before committing. The pre-commit hook checks this automatically after installation.
+=======
+>>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
