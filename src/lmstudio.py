@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 from typing import Any
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 from openai import OpenAI
 from urllib.parse import urlsplit
 import json
@@ -13,34 +10,21 @@ import threading
 _SWITCH_LOCK = threading.Lock()
 _PREF_DB = ROOT / "model_selection.sqlite3"
 
-<<<<<<< HEAD
 def _pref_db() -> Any:
-=======
-def _pref_db():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     con = sqlite3.connect(_PREF_DB, timeout=10)
     con.execute("CREATE TABLE IF NOT EXISTS settings (name TEXT PRIMARY KEY, value TEXT NOT NULL)")
     return con
 
-<<<<<<< HEAD
 def _saved_model() -> Any:
-=======
-def _saved_model():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     with _pref_db() as con:
         row = con.execute("SELECT value FROM settings WHERE name=?", ("active_model",)).fetchone()
     return row[0] if row else ""
 
-<<<<<<< HEAD
 def _save_model(value: Any) -> Any:
-=======
-def _save_model(value):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     with _pref_db() as con:
         con.execute("INSERT INTO settings(name,value) VALUES(?,?) ON CONFLICT(name) DO UPDATE SET value=excluded.value", ("active_model", value))
 
 
-<<<<<<< HEAD
 def client() -> Any:
     return OpenAI(base_url=BASE_URL, api_key=API_KEY, timeout=TIMEOUT, max_retries=1)
 
@@ -48,15 +32,6 @@ def list_models() -> Any:
     return [item.id for item in client().models.list().data]
 
 def _rest_request(path: Any, payload: Any = None) -> Any:
-=======
-def client():
-    return OpenAI(base_url=BASE_URL, api_key=API_KEY, timeout=TIMEOUT, max_retries=1)
-
-def list_models():
-    return [item.id for item in client().models.list().data]
-
-def _rest_request(path, payload=None):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     parsed = urlsplit(BASE_URL)
     if parsed.scheme != "http" or parsed.hostname not in ("127.0.0.1", "localhost", "::1") or parsed.username or parsed.password:
         raise RuntimeError("モデル管理はローカルのHTTP LM Studio APIのみ利用可能です")
@@ -70,17 +45,10 @@ def _rest_request(path, payload=None):
     with urlopen(req, timeout=180 if body is not None else 10) as response:
         return json.load(response)
 
-<<<<<<< HEAD
 def local_models() -> Any:
     return [m for m in _rest_request("models").get("models", []) if m.get("type") == "llm"]
 
 def loaded_model_ids() -> Any:
-=======
-def local_models():
-    return [m for m in _rest_request("models").get("models", []) if m.get("type") == "llm"]
-
-def loaded_model_ids():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     ids = []
     for model in local_models():
         for instance in model.get("loaded_instances") or []:
@@ -89,11 +57,7 @@ def loaded_model_ids():
     return ids
 
 
-<<<<<<< HEAD
 def switch_model(model_key: Any, context_length: Any = 2048, kv_cache_on_gpu: Any = False) -> Any:
-=======
-def switch_model(model_key, context_length=2048, kv_cache_on_gpu=False):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Switch only between installed local LLMs; no arbitrary model paths or URLs."""
     if not _SWITCH_LOCK.acquire(blocking=False):
         raise RuntimeError("別のモデル切り替えが進行中です")
@@ -132,11 +96,7 @@ def switch_model(model_key, context_length=2048, kv_cache_on_gpu=False):
     finally:
         _SWITCH_LOCK.release()
 
-<<<<<<< HEAD
 def selected_model() -> Any:
-=======
-def selected_model():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     ids = loaded_model_ids()
     saved = _saved_model()
     if saved and saved in ids:

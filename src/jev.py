@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 from typing import Any
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 """Jev relevance judgments. Jev never receives or executes application tools."""
 import json
 import os
@@ -20,11 +17,7 @@ class JevError(RuntimeError):
     """Safe-to-display Jev API error (never includes the API key)."""
 
 
-<<<<<<< HEAD
 def _api_key() -> Any:
-=======
-def _api_key():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     key = os.getenv("TYPESAFE_API_KEY", "").strip()
     if not key or key.lower().startswith(("your_", "your-", "replace-me")):
         raise JevError("TYPESAFE_API_KEY が未設定です")

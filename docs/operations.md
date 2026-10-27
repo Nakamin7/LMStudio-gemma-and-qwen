@@ -10,7 +10,6 @@
 - **LM Studio memory error:** unload other models, reduce context length or GPU offload; do not bypass memory safeguards.
 - **Missing `lms`:** use LM Studio GUI or the native local REST API switch UI.
 - **Scheduled costs:** when a cloud provider is selected, scheduled tasks can automatically incur API usage charges. Pause tasks when not needed.
-<<<<<<< HEAD
 - **Document search:** hybrid SQLite FTS5 + local graph-assisted retrieval. Japanese lexical search can still be weak; graph matches are lexical entity candidates and co-occurrence evidence, not verified semantic relations.
 - **Graph index:** new uploads update the graph automatically. Use Knowledge Base → GraphRAG index rebuild after changing indexing behavior or recovering an inconsistent graph index.
 
@@ -51,8 +50,3 @@ pytest が requirements に含まれていない環境では `pip install pytest
 ## 回答の根拠検証
 
 ナレッジ検索を使った回答には `[出典: ファイル名]` が必要です。アプリは引用された出典が検索結果に含まれるかを機械的に確認し、不一致や引用欠落に警告を付けます。これは出典の存在確認であり、回答中の全ての主張が真実であることを保証するものではありません。重要な回答は引用箇所を原文と照合してください。
-=======
-- **Document search:** SQLite FTS5 is lexical matching; Japanese without spaces may give weak results.
-
-See [Cloud Provider Guide](cloud-providers.md).
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0

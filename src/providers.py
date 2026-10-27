@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 from typing import Any
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 
 """Select an inference provider for both the Gradio UI and background worker.
 
@@ -38,11 +35,7 @@ MODEL_PATTERN = re.compile(
 )
 
 
-<<<<<<< HEAD
 def _connect() -> Any:
-=======
-def _connect():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Open the settings database and ensure its table exists."""
     connection = sqlite3.connect(PREF_DB, timeout=20)
     connection.execute("PRAGMA busy_timeout=20000")
@@ -53,11 +46,7 @@ def _connect():
     return connection
 
 
-<<<<<<< HEAD
 def _read_setting(key: Any, default: Any = '') -> Any:
-=======
-def _read_setting(key, default=""):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Read a persisted setting."""
     with _connect() as db:
         row = db.execute(
@@ -68,21 +57,13 @@ def _read_setting(key, default=""):
     return row[0] if row else default
 
 
-<<<<<<< HEAD
 def current_provider() -> Any:
-=======
-def current_provider():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Return the selected provider, defaulting to LM Studio."""
     provider = _read_setting("provider", "local")
     return provider if provider in PROVIDERS else "local"
 
 
-<<<<<<< HEAD
 def current_selection() -> Any:
-=======
-def current_selection():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Return the current provider and selected model."""
     provider = current_provider()
 
@@ -93,11 +74,7 @@ def current_selection():
     return provider, _read_setting(f"model_{provider}")
 
 
-<<<<<<< HEAD
 def configured(provider: Any) -> Any:
-=======
-def configured(provider):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Check whether the selected provider has a usable API key."""
     if provider == "local":
         return True
@@ -119,11 +96,7 @@ def configured(provider):
     )
 
 
-<<<<<<< HEAD
 def client_for(provider: Any) -> Any:
-=======
-def client_for(provider):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Create the inference client for the requested provider."""
     if provider == "local":
         return lmstudio.client()
@@ -162,11 +135,7 @@ def client_for(provider):
     )
 
 
-<<<<<<< HEAD
 def _google_error_message(raw_body: Any) -> Any:
-=======
-def _google_error_message(raw_body):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Extract a useful message from Google's JSON error response."""
     try:
         payload = json.loads(
@@ -206,11 +175,7 @@ def _google_error_message(raw_body):
         )[:500]
 
 
-<<<<<<< HEAD
 def _list_gemini_models() -> Any:
-=======
-def _list_gemini_models():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """List Gemini models using Google's native Models API.
 
     The API key is sent in a request header rather than in the URL.
@@ -348,11 +313,7 @@ def _list_gemini_models():
     return models
 
 
-<<<<<<< HEAD
 def list_provider_models(provider: Any) -> Any:
-=======
-def list_provider_models(provider):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Return model IDs available for the requested provider."""
     if provider not in PROVIDERS:
         raise ValueError("Unsupported provider")
@@ -385,11 +346,7 @@ def list_provider_models(provider):
     return models
 
 
-<<<<<<< HEAD
 def set_provider(provider: Any, model: Any = '', cloud_confirmed: Any = False) -> Any:
-=======
-def set_provider(provider, model="", cloud_confirmed=False):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Persist provider/model selection after required cloud consent."""
     if provider not in PROVIDERS:
         raise ValueError("Unknown provider")
@@ -434,11 +391,7 @@ def set_provider(provider, model="", cloud_confirmed=False):
     return f"推論先を {provider} に設定しました{suffix}"
 
 
-<<<<<<< HEAD
 def resolve_inference() -> Any:
-=======
-def resolve_inference():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Resolve the active provider, model, and client."""
     provider = current_provider()
 
@@ -463,11 +416,7 @@ def resolve_inference():
     return client_for(provider), model, provider
 
 
-<<<<<<< HEAD
 def selection_status() -> Any:
-=======
-def selection_status():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Return a UI-friendly summary of the current selection."""
     provider, model = current_selection()
 
@@ -489,11 +438,7 @@ def selection_status():
 
 # Jev settings are stored separately from cloud inference provider selection.
 
-<<<<<<< HEAD
 def jev_preferences() -> Any:
-=======
-def jev_preferences():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Return (enabled, consented); Jev is opt-in and defaults off."""
     enabled = _read_setting("jev_enabled", "0") == "1"
     consented = _read_setting("jev_consent", "0") == "1"
@@ -502,11 +447,7 @@ def jev_preferences():
     return enabled and consented, consented
 
 
-<<<<<<< HEAD
 def set_jev_preferences(enabled: Any, consented: Any) -> Any:
-=======
-def set_jev_preferences(enabled, consented):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     """Persist explicit Jev opt-in independently of OpenAI/Gemini consent."""
     enabled = bool(enabled)
     consented = bool(consented)

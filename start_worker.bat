@@ -1,5 +1,4 @@
 @echo off
-<<<<<<< HEAD
 setlocal
 cd /d "%~dp0"
 
@@ -33,13 +32,3 @@ if not "%APP_EXIT_CODE%"=="0" (
 )
 pause
 exit /b %APP_EXIT_CODE%
-=======
-cd /d "%~dp0"
-if not exist ".venv\Scripts\python.exe" (
-  echo Missing virtual environment. See README.md.
-  pause
-  exit /b 1
-)
-".venv\Scripts\python.exe" worker.py
-pause
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0

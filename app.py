@@ -1,18 +1,12 @@
-<<<<<<< HEAD
 from typing import Any
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 from pathlib import Path
 import shutil
 import gradio as gr
 from config import DOCUMENTS
 from src.database import init_db, add_task, tasks, set_enabled, runs
 from src.rag import ingest_file, index_documents
-<<<<<<< HEAD
 from src.graph_rag import rebuild_graph, enrich_graph_with_local_llm
 from src.database import connect
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 from src.agent import ask
 from src.lmstudio import selected_model, local_models, switch_model
 from src.providers import (current_selection, list_provider_models, set_provider,
@@ -22,21 +16,13 @@ from ui.theme import get_theme
 init_db()
 CSS = (Path(__file__).parent / 'ui' / 'custom.css').read_text(encoding='utf-8')
 
-<<<<<<< HEAD
 def chat(message: Any, history: Any) -> Any:
-=======
-def chat(message, history):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     try:
         return ask(message, history)
     except Exception as exc:
         return f'エラー: {type(exc).__name__}: {exc}'
 
-<<<<<<< HEAD
 def register_file(file_path: Any) -> Any:
-=======
-def register_file(file_path):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     if not file_path:
         return 'ファイルを選択してください'
     try:
@@ -48,7 +34,6 @@ def register_file(file_path):
         destination = DOCUMENTS / path.name
         if path.resolve() != destination.resolve():
             shutil.copy2(path, destination)
-<<<<<<< HEAD
         return f'{destination.name}: {ingest_file(destination)}チャンクを登録し、GraphRAG索引を更新しました'
     except Exception as exc:
         return f'登録エラー: {type(exc).__name__}: {exc}'
@@ -94,28 +79,13 @@ def format_tasks() -> Any:
     return '\n'.join(f"#{x['id']} | {'有効' if x['enabled'] else '停止'} | {x['interval_minutes']}分 | {x['name']}" for x in rows) or 'タスクなし'
 
 def add_task_ui(name: Any, prompt: Any, interval: Any) -> Any:
-=======
-        return f'{destination.name}: {ingest_file(destination)}件登録しました'
-    except Exception as exc:
-        return f'登録エラー: {type(exc).__name__}: {exc}'
-
-def format_tasks():
-    rows = tasks()
-    return '\n'.join(f"#{x['id']} | {'有効' if x['enabled'] else '停止'} | {x['interval_minutes']}分 | {x['name']}" for x in rows) or 'タスクなし'
-
-def add_task_ui(name, prompt, interval):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     try:
         task_id = add_task(name, prompt, interval)
         return f'タスク #{task_id} を登録しました。ワーカーが30秒以内に検知します。', format_tasks()
     except Exception as exc:
         return f'登録エラー: {type(exc).__name__}: {exc}', format_tasks()
 
-<<<<<<< HEAD
 def update_task(task_id: Any, enabled: Any) -> Any:
-=======
-def update_task(task_id, enabled):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     try:
         if task_id is None:
             raise ValueError('タスクIDを入力してください')
@@ -124,19 +94,11 @@ def update_task(task_id, enabled):
     except Exception as exc:
         return f'エラー: {type(exc).__name__}: {exc}'
 
-<<<<<<< HEAD
 def format_runs() -> Any:
     rows = runs()
     return '\n\n'.join(f"#{x['task_id']} [{x['status']}] {x['finished_at']}\n{x['result'][:1000]}" for x in rows) or '実行履歴なし'
 
 def model_status() -> Any:
-=======
-def format_runs():
-    rows = runs()
-    return '\n\n'.join(f"#{x['task_id']} [{x['status']}] {x['finished_at']}\n{x['result'][:1000]}" for x in rows) or '実行履歴なし'
-
-def model_status():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     try:
         models = local_models()
         active = [f"{m.get('display_name',m['key'])}: {i['id']}" for m in models for i in m.get('loaded_instances', [])]
@@ -145,11 +107,7 @@ def model_status():
     except Exception as exc:
         return f"接続エラー: {type(exc).__name__}: {exc}"
 
-<<<<<<< HEAD
 def model_choices() -> Any:
-=======
-def model_choices():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     try:
         models = local_models()
         options = [(m.get('display_name') or m['key'], m['key']) for m in models]
@@ -157,11 +115,7 @@ def model_choices():
     except Exception as exc:
         return gr.update(choices=[], value=None), f"一覧取得エラー: {type(exc).__name__}: {exc}"
 
-<<<<<<< HEAD
 def apply_model_switch(model_key: Any, context_length: Any, kv_cache_on_gpu: Any, confirmed: Any) -> Any:
-=======
-def apply_model_switch(model_key, context_length, kv_cache_on_gpu, confirmed):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     if not confirmed:
         return "切り替えを実行するには確認チェックを入れてください。", model_status()
     if not model_key:
@@ -173,11 +127,7 @@ def apply_model_switch(model_key, context_length, kv_cache_on_gpu, confirmed):
         return f"切り替え失敗: {type(exc).__name__}: {exc}", model_status()
 
 
-<<<<<<< HEAD
 def provider_models(provider: Any) -> Any:
-=======
-def provider_models(provider):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     if provider == 'local':
         return gr.update(choices=[], value=None), 'LM Studioのモデルは下の「モデル一覧を更新」から読み込み・切り替えしてください。'
     try:
@@ -191,20 +141,12 @@ def provider_models(provider):
         return gr.update(choices=[], value=None), f"一覧取得エラー: {type(exc).__name__}: {exc}"
 
 
-<<<<<<< HEAD
 def provider_changed(provider: Any) -> Any:
-=======
-def provider_changed(provider):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     # Changing a dropdown never changes what the worker uses. Explicit save is required.
     return gr.update(choices=[], value=None), f"{provider} を選択中です。「モデル一覧を取得」を押してください。"
 
 
-<<<<<<< HEAD
 def save_jev_settings(enabled: Any, consented: Any) -> Any:
-=======
-def save_jev_settings(enabled, consented):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     try:
         message = set_jev_preferences(enabled, consented)
         if enabled and not __import__("os").getenv("TYPESAFE_API_KEY", "").strip():
@@ -215,11 +157,7 @@ def save_jev_settings(enabled, consented):
         return f"設定エラー: {type(exc).__name__}: {exc}", current_enabled, current_consent
 
 
-<<<<<<< HEAD
 def apply_provider(provider: Any, model: Any, cloud_confirmed: Any) -> Any:
-=======
-def apply_provider(provider, model, cloud_confirmed):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     try:
         result = set_provider(provider, model or "", cloud_confirmed=cloud_confirmed)
         return result, selection_status()
@@ -264,7 +202,6 @@ with gr.Blocks(title='LM Studio Agent') as demo:
             upload_btn = gr.Button('Add Document', variant='primary')
             upload_result = gr.Textbox(label='Result')
             upload_btn.click(fn=register_file, inputs=upload, outputs=upload_result)
-<<<<<<< HEAD
             gr.Markdown('''### GraphRAG ナレッジグラフ
 登録文書から候補エンティティと、同じ文書チャンクに現れる関係をローカルで索引化します。インデックス作成のために文書本文を外部APIへ送信しません。これらのリンクは共起関係であり、因果関係などの意味的関係を断定するものではありません。''')
             graph_status = gr.Textbox(label='GraphRAG索引状態', value=graph_index_status(), lines=3)
@@ -275,8 +212,6 @@ with gr.Blocks(title='LM Studio Agent') as demo:
             gr.Markdown('''#### ベクトル検索（任意）
 .env に `EMBEDDING_MODEL` と LM Studio の埋め込みモデルIDを設定し、そのモデルをロードしてから索引を構築してください。埋め込みAPIが利用できない場合は従来検索へフォールバックします。''')
             gr.Button('ベクトル索引を構築 / 更新').click(fn=rebuild_vector_index_ui, outputs=graph_status)
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
         with gr.Tab('Automations'):
             gr.Markdown('### Scheduled Tasks\nワーカーを別プロセスで起動してください。')
             name = gr.Textbox(label='タスク名')

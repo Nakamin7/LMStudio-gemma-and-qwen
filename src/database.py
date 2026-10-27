@@ -1,32 +1,18 @@
-<<<<<<< HEAD
 from typing import Any
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 import sqlite3
 from datetime import datetime, timezone
 from config import DB_PATH
 
-<<<<<<< HEAD
 def now() -> Any:
     return datetime.now(timezone.utc).isoformat()
 
 def connect() -> Any:
-=======
-def now():
-    return datetime.now(timezone.utc).isoformat()
-
-def connect():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA busy_timeout=30000")
     return conn
 
-<<<<<<< HEAD
 def init_db() -> Any:
-=======
-def init_db():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     with connect() as db:
         db.execute("PRAGMA journal_mode=WAL")
         db.execute("""CREATE TABLE IF NOT EXISTS tasks (
@@ -44,7 +30,6 @@ def init_db():
             result TEXT NOT NULL)""")
         db.execute("""CREATE VIRTUAL TABLE IF NOT EXISTS documents_fts
             USING fts5(source UNINDEXED, content, tokenize='unicode61')""")
-<<<<<<< HEAD
         # Local, source-grounded graph index. Relationships are co-occurrence links,
         # not claims of semantic causation; every edge retains its evidence excerpt.
         db.execute("""CREATE TABLE IF NOT EXISTS graph_entities (
@@ -87,10 +72,6 @@ def init_db():
         )""")
 
 def add_task(name: Any, prompt: Any, interval_minutes: Any) -> Any:
-=======
-
-def add_task(name, prompt, interval_minutes):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     name, prompt = name.strip(), prompt.strip()
     if not name or not prompt:
         raise ValueError("タスク名と指示が必要です")
@@ -106,37 +87,21 @@ def add_task(name, prompt, interval_minutes):
                             (name,prompt,interval,now()))
         return cursor.lastrowid
 
-<<<<<<< HEAD
 def tasks() -> Any:
     with connect() as db:
         return [dict(row) for row in db.execute("SELECT * FROM tasks ORDER BY id DESC")]
 
 def set_enabled(task_id: Any, enabled: Any) -> Any:
-=======
-def tasks():
-    with connect() as db:
-        return [dict(row) for row in db.execute("SELECT * FROM tasks ORDER BY id DESC")]
-
-def set_enabled(task_id, enabled):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     with connect() as db:
         cursor = db.execute("UPDATE tasks SET enabled=? WHERE id=?", (int(bool(enabled)), int(task_id)))
         if not cursor.rowcount:
             raise ValueError("指定されたタスクがありません")
 
-<<<<<<< HEAD
 def runs(limit: Any = 30) -> Any:
     with connect() as db:
         return [dict(row) for row in db.execute("SELECT * FROM runs ORDER BY id DESC LIMIT ?", (limit,))]
 
 def record_run(task_id: Any, started_at: Any, status: Any, result: Any) -> Any:
-=======
-def runs(limit=30):
-    with connect() as db:
-        return [dict(row) for row in db.execute("SELECT * FROM runs ORDER BY id DESC LIMIT ?", (limit,))]
-
-def record_run(task_id, started_at, status, result):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     with connect() as db:
         db.execute("INSERT INTO runs(task_id,started_at,finished_at,status,result) VALUES(?,?,?,?,?)",
                    (task_id,started_at,now(),status,result[:20000]))

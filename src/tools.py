@@ -1,26 +1,16 @@
-<<<<<<< HEAD
 from typing import Any
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 import ast
 import operator
 from config import WORKSPACE
 from src.rag import search_documents
-<<<<<<< HEAD
 from src.graph_rag import hybrid_search, search_graph
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 from src.providers import jev_preferences
 
 OPS={ast.Add:operator.add,ast.Sub:operator.sub,ast.Mult:operator.mul,ast.Div:operator.truediv,
      ast.FloorDiv:operator.floordiv,ast.Mod:operator.mod,ast.Pow:operator.pow,
      ast.UAdd:operator.pos,ast.USub:operator.neg}
 
-<<<<<<< HEAD
 def _eval(node: Any) -> Any:
-=======
-def _eval(node):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     if isinstance(node,ast.Constant) and type(node.value) in (int,float):
         if abs(node.value)>1e12: raise ValueError('数値が大きすぎます')
         return node.value
@@ -34,7 +24,6 @@ def _eval(node):
         return result
     raise ValueError('許可されない式です')
 
-<<<<<<< HEAD
 def calculate(expression: Any) -> Any:
     if len(expression)>120: raise ValueError('式が長すぎます')
     return str(_eval(ast.parse(expression,mode='eval').body))
@@ -43,23 +32,12 @@ def list_workspace_files() -> Any:
     return '\n'.join(p.name for p in sorted(WORKSPACE.iterdir()) if p.is_file()) or 'ファイルなし'
 
 def read_workspace_file(filename: Any) -> Any:
-=======
-def calculate(expression):
-    if len(expression)>120: raise ValueError('式が長すぎます')
-    return str(_eval(ast.parse(expression,mode='eval').body))
-
-def list_workspace_files():
-    return '\n'.join(p.name for p in sorted(WORKSPACE.iterdir()) if p.is_file()) or 'ファイルなし'
-
-def read_workspace_file(filename):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     path=(WORKSPACE / filename).resolve()
     if path.parent != WORKSPACE.resolve() or path.suffix.lower() not in {'.txt','.md','.csv'}:
         raise ValueError('workspace直下のTXT/MD/CSVのみ読めます')
     if path.stat().st_size>200_000: raise ValueError('ファイルが大きすぎます')
     return path.read_text(encoding='utf-8-sig')[:20000]
 
-<<<<<<< HEAD
 from src.retrieval_strategy import query_strategy as _query_strategy
 
 def search_knowledge_base(query: Any) -> Any:
@@ -95,12 +73,6 @@ def search_knowledge_base(query: Any) -> Any:
         results.append(item)
     if not results:
         return '一致する文書なし。ベクトル索引が必要な場合は Knowledge Base で構築してください。'
-=======
-def search_knowledge_base(query):
-    results = search_documents(query)
-    if not results:
-        return '一致する文書なし'
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 
     # Jev receives only the user's query and short retrieved passages, and only after
     # explicit, independently persisted Jev consent. It receives no tools or credentials.
@@ -122,7 +94,6 @@ def search_knowledge_base(query):
                 results = judged
             else:
                 return ('Jevがしきい値以上の関連文書を選べなかったため、ローカル検索結果を表示します。\n\n'
-<<<<<<< HEAD
                         + '\n\n'.join(f"[出典: {x['source']}]\n[検索経路: {', '.join(x.get('retrieval_methods', []))}]\n{x['content']}" for x in results))
         except Exception as exc:
             # Availability failure must not block the existing local knowledge search.
@@ -130,14 +101,6 @@ def search_knowledge_base(query):
                     + '\n\n'.join(f"[出典: {x['source']}]\n[検索経路: {', '.join(x.get('retrieval_methods', []))}]\n{x['content']}" for x in results))
     header = f"検索戦略: {strategy} / ベクトル候補: {len(vector_results)}" + (f" / ベクトル検索未使用: {vector_error}" if vector_error else '')
     return header + '\n\n' + '\n\n'.join(f"[出典: {x['source']}]\n[検索経路: {', '.join(x.get('retrieval_methods', []))}]\n{x['content']}" for x in results) or '一致する文書なし'
-=======
-                        + '\n\n'.join(f"出典: {x['source']}\n{x['content']}" for x in results))
-        except Exception as exc:
-            # Availability failure must not block the existing local knowledge search.
-            return (f'Jev判定を利用できなかったため、ローカル検索結果を表示します（{type(exc).__name__}）。\n\n'
-                    + '\n\n'.join(f"出典: {x['source']}\n{x['content']}" for x in results))
-    return '\n\n'.join(f"出典: {x['source']}\n{x['content']}" for x in results) or '一致する文書なし'
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 
 FUNCTIONS={
  'calculate':calculate,
@@ -149,9 +112,5 @@ SCHEMAS=[
  {'type':'function','function':{'name':'calculate','description':'安全な算術式を計算する','parameters':{'type':'object','properties':{'expression':{'type':'string'}},'required':['expression']}}},
  {'type':'function','function':{'name':'list_workspace_files','description':'作業フォルダ内のファイル一覧を返す','parameters':{'type':'object','properties':{}}}},
  {'type':'function','function':{'name':'read_workspace_file','description':'作業フォルダ直下のテキストファイルを読む','parameters':{'type':'object','properties':{'filename':{'type':'string'}},'required':['filename']}}},
-<<<<<<< HEAD
  {'type':'function','function':{'name':'search_knowledge_base','description':'登録文書を全文検索し、関連エンティティと文書間のつながりも使ってナレッジを検索する','parameters':{'type':'object','properties':{'query':{'type':'string'}},'required':['query']}}},
-=======
- {'type':'function','function':{'name':'search_knowledge_base','description':'登録文書を全文検索する','parameters':{'type':'object','properties':{'query':{'type':'string'}},'required':['query']}}},
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 ]

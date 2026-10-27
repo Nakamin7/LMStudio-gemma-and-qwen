@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 from typing import Any
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
 from src.database import init_db, connect, now, record_run
@@ -10,11 +7,7 @@ from src.agent import ask
 scheduler=BlockingScheduler(timezone='Asia/Tokyo',job_defaults={'max_instances':1,'coalesce':True})
 lock=threading.Lock()
 
-<<<<<<< HEAD
 def execute(task_id: Any) -> Any:
-=======
-def execute(task_id):
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     if not lock.acquire(blocking=False):
         return
     started=now()
@@ -30,11 +23,7 @@ def execute(task_id):
     finally:
         lock.release()
 
-<<<<<<< HEAD
 def sync_jobs() -> Any:
-=======
-def sync_jobs():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     with connect() as db:
         tasks=[dict(row) for row in db.execute('SELECT * FROM tasks WHERE enabled=1')]
     current={f"task_{t['id']}" for t in tasks}
@@ -48,11 +37,7 @@ def sync_jobs():
             continue
         scheduler.add_job(execute,'interval',minutes=task['interval_minutes'],args=[task['id']],id=job_id,replace_existing=True)
 
-<<<<<<< HEAD
 def main() -> Any:
-=======
-def main():
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
     init_db()
     sync_jobs()
     scheduler.add_job(sync_jobs,'interval',seconds=30,id='sync',max_instances=1)

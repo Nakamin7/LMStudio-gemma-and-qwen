@@ -110,7 +110,6 @@ def test_invalid_input(tmp_path, monkeypatch):
         assert False
 
 
-<<<<<<< HEAD
 def test_agent_uses_selected_openai_responses_model(monkeypatch):
     from src import agent
     response = SimpleNamespace(
@@ -124,19 +123,6 @@ def test_agent_uses_selected_openai_responses_model(monkeypatch):
         assert agent.ask('こんにちは') == 'こんにちは'
     assert fake_api.responses.create.call_args.kwargs['model'] == 'gpt-test'
     assert fake_api.chat.completions.create.call_count == 0
-=======
-def test_agent_uses_selected_cloud_model(monkeypatch):
-    from src import agent
-    message = SimpleNamespace(content='こんにちは', tool_calls=None)
-    fake_api = Mock()
-    fake_api.chat.completions.create.return_value = SimpleNamespace(
-        choices=[SimpleNamespace(message=message)]
-    )
-    with patch.object(agent, 'resolve_inference', return_value=(fake_api, 'gpt-test', 'openai')):
-        assert agent.ask('こんにちは') == 'こんにちは'
-    assert fake_api.chat.completions.create.call_args.kwargs['model'] == 'gpt-test'
-    assert fake_api.chat.completions.create.call_args.kwargs['tool_choice'] == 'auto'
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 
 
 def test_no_automatic_cloud_fallback(tmp_path, monkeypatch):

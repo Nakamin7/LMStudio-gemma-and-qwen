@@ -5,11 +5,7 @@
 
 ```powershell
 py -3.11 -m venv .venv
-<<<<<<< HEAD
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-=======
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
 Copy-Item .env.example .env
 ```
 
@@ -19,7 +15,6 @@ Copy-Item .env.example .env
 6. Open `http://127.0.0.1:7860` → **Model Connection** and choose your provider.
 
 See [Cloud Provider Guide](cloud-providers.md) for API key setup, privacy, and billing implications.
-<<<<<<< HEAD
 
 ## Development checks: mypy, pre-commit, and Gitleaks
 
@@ -34,5 +29,3 @@ From the project root, after activating the virtual environment:
 ```
 
 The pre-commit configuration runs Gitleaks on staged changes and mypy on the configured Python application files. Install hooks separately in each clone. CI also runs a static type check. If a check fails, fix the issue rather than bypassing the hook. Never put real API keys in test fixtures; use fake placeholder strings.
-=======
->>>>>>> d113ef0042cbe2e6b1958bac71985936af2426c0
